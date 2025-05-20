@@ -19,50 +19,104 @@
         }
         .tile {
             display: inline-block;
-            /* Styles for smaller tiles */
-            padding: 0.125rem 0.5rem; /* py-0.5 px-2 */
-            margin: 0.125rem; /* m-0.5 */
-            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.125rem 0.5rem; 
+            margin: 0.125rem; 
+            border-radius: 0.375rem; 
             border-width: 1px;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
-            font-size: 0.75rem; /* text-xs */
-            font-weight: 500; /* font-medium */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
+            font-size: 0.75rem; 
+            font-weight: 500; 
             cursor: pointer;
             transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
         .tile:hover {
             transform: scale(1.08);
         }
-        .tile.dragging { /* Style for the tile being dragged */
+        .tile.dragging {
             opacity: 0.5;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2), 0 4px 6px -2px rgba(0,0,0,0.1);
         }
-        .drop-zone { /* Styling for the combination area */
+        .drop-zone {
             min-height: 120px; 
-            padding: 0.75rem; /* p-3 */
+            padding: 0.75rem; 
             border-width: 2px;
             border-style: dashed;
-            border-color: #d1d5db; /* border-gray-300 */
-            border-radius: 0.5rem; /* rounded-lg */
-            background-color: #ffffff; /* bg-white */
-            gap: 0.125rem; /* gap-0.5, adjusted for smaller tiles */
+            border-color: #d1d5db; 
+            border-radius: 0.5rem; 
+            background-color: #ffffff; 
+            gap: 0.125rem; 
             display: flex;
             flex-wrap: wrap;
             align-items: center;
         }
-        .card { /* Styling for the cards holding tile sections */
-            border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+        .card {
+            border-radius: 0.75rem; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); 
         }
-        .card-content { /* Inner padding for cards */
-            padding: 1.25rem; /* p-5 */
+        .card-content {
+            padding: 1.25rem; 
         }
-        .placeholder-text { /* Styling for placeholder text in empty areas */
-            color: #9ca3af; /* text-gray-400 */
+        .placeholder-text {
+            color: #9ca3af; 
             font-style: italic;
             width: 100%;
             text-align: center;
-            font-size: 0.875rem; /* text-sm */
+            font-size: 0.875rem; 
+        }
+        /* Removed .input-group and related styles for individual add buttons as they are no longer used */
+        .input-group textarea { /* Kept for teacher section */
+            flex-grow: 1;
+            padding: 0.375rem 0.5rem;
+            font-size: 0.875rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            min-height: 60px;
+            resize: vertical;
+            width: 100%; /* Ensure textarea takes full width */
+        }
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #2563eb; 
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); 
+        }
+        .action-button {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem; 
+            font-weight: 500; 
+            color: white;
+            background-color: #3b82f6; 
+            border: 1px solid #3b82f6; 
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+            border-radius: 0.375rem; /* rounded-md */
+            margin-top: 0.5rem;
+            display: block; 
+            width: 100%; 
+        }
+        .action-button:hover {
+            background-color: #2563eb; 
+        }
+        .teacher-section {
+            background-color: #e0f2fe; 
+            padding: 1rem;
+            border-radius: 0.5rem; 
+            margin-bottom: 1.5rem; 
+        }
+        .teacher-section h3 {
+            font-size: 1.125rem; 
+            font-weight: 600; 
+            margin-bottom: 0.75rem; 
+            color: #0c4a6e; 
+        }
+        .share-link-display {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            background-color: #f9f9f9;
+            word-break: break-all; 
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -71,26 +125,44 @@
     <div class="max-w-4xl w-full mx-auto py-8 px-4">
         <h1 class="text-4xl font-bold text-center mb-8 text-gray-700">Word Builder</h1>
 
+        <div id="teacher-controls-section" class="teacher-section"> <h3>Teacher Controls</h3>
+            <p class="text-sm text-gray-600 mb-2">Enter comma-separated lists below to update the word parts for this session.</p>
+            
+            <label for="teacher-prefixes-input" class="block text-sm font-medium text-gray-700 mt-2">Prefixes:</label>
+            <textarea id="teacher-prefixes-input" class="input-group textarea" placeholder="e.g., pre, un, re"></textarea>
+            
+            <label for="teacher-roots-input" class="block text-sm font-medium text-gray-700 mt-2">Roots/Morphemes:</label>
+            <textarea id="teacher-roots-input" class="input-group textarea" placeholder="e.g., act, port, spect:inspect"></textarea>
+            
+            <label for="teacher-suffixes-input" class="block text-sm font-medium text-gray-700 mt-2">Suffixes:</label>
+            <textarea id="teacher-suffixes-input" class="input-group textarea" placeholder="e.g., tion, able, ly"></textarea>
+            
+            <button id="update-all-lists-btn" class="action-button bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600">Load These Custom Lists</button>
+            
+            <hr class="my-4">
+            
+            <button id="generate-share-link-btn" class="action-button">Generate Share Link with Current Lists</button>
+            <input type="text" id="share-link-display" class="share-link-display" readonly placeholder="Shareable link will appear here...">
+        </div>
+
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div class="card bg-white">
                 <div class="card-content">
-                    <h2 class="text-2xl font-semibold mb-4 text-blue-600">Prefixes</h2>
-                    <div id="prefixes-container" class="flex flex-wrap gap-0.5">
-                        </div>
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-600">Prefixes</h2> 
+                    <div id="prefixes-container" class="flex flex-wrap gap-0.5"></div>
                 </div>
             </div>
             <div class="card bg-white">
                 <div class="card-content">
                     <h2 class="text-2xl font-semibold mb-4 text-green-600">Root Words & Morphemes</h2>
-                    <div id="roots-container" class="flex flex-wrap gap-0.5">
-                        </div>
+                    <div id="roots-container" class="flex flex-wrap gap-0.5"></div>
                 </div>
             </div>
             <div class="card bg-white">
                 <div class="card-content">
                     <h2 class="text-2xl font-semibold mb-4 text-pink-600">Suffixes</h2>
-                    <div id="suffixes-container" class="flex flex-wrap gap-0.5">
-                        </div>
+                    <div id="suffixes-container" class="flex flex-wrap gap-0.5"></div>
                 </div>
             </div>
         </div>
@@ -106,246 +178,241 @@
     </div>
 
     <script>
-        // Wait for the HTML document to be fully loaded before running the script
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DATA & CONSTANTS ---
             const PREFIX_COLOR = "bg-blue-200 border-blue-400";
             const ROOT_COLOR = "bg-green-200 border-green-400";
             const SUFFIX_COLOR = "bg-pink-200 border-pink-400";
 
-            // Initial data for available word parts
-            let availableData = {
+            const defaultAvailableData = {
                 prefixes: ["abs", "anti", "at", "con", "dis", "e", "en", "ex", "in", "per", "pro", "re", "sub", "trans"],
                 roots: parseRootsData(["act", "anim:animate", "vac:vacate", "inspect:spect:speculate:respect", "tract:distract", "spir:inspire"]),
                 suffixes: ["or", "tion", "al", "able", "ation", "ator", "atory", "ion"]
             };
 
-            // Array to store the tiles currently in the combination area
-            let combinedTilesData = []; 
-            let nextTileId = 0; // Counter for generating unique IDs for combined tiles
-            let draggedTile = null; // Stores the HTML element of the tile currently being dragged
+            let availableData = JSON.parse(JSON.stringify(defaultAvailableData)); 
 
-            // --- DOM Element References ---
+            let combinedTilesData = []; 
+            let nextTileId = 0;
+            let draggedTile = null; 
+
             const prefixesContainer = document.getElementById('prefixes-container');
             const rootsContainer = document.getElementById('roots-container');
             const suffixesContainer = document.getElementById('suffixes-container');
             const combinationArea = document.getElementById('combination-area');
-            const placeholderText = combinationArea.querySelector('.placeholder-text'); // Reference to the placeholder text
+            const placeholderText = combinationArea.querySelector('.placeholder-text');
 
-            // --- HELPER FUNCTIONS ---
-            /**
-             * Parses strings containing multiple root words separated by colons or commas.
-             * @param {string[]} arr - Array of strings to parse.
-             * @returns {string[]} A flat array of unique root words.
-             */
-            function parseRootsData(arr) {
+            // Teacher section elements
+            const teacherControlsSection = document.getElementById('teacher-controls-section'); // Added ID here
+            const teacherPrefixesInput = document.getElementById('teacher-prefixes-input');
+            const teacherRootsInput = document.getElementById('teacher-roots-input');
+            const teacherSuffixesInput = document.getElementById('teacher-suffixes-input');
+            const updateAllListsBtn = document.getElementById('update-all-lists-btn');
+            const generateShareLinkBtn = document.getElementById('generate-share-link-btn');
+            const shareLinkDisplay = document.getElementById('share-link-display');
+
+
+            function parseRootsData(arrOrString) {
                 let out = [];
-                arr.forEach(item => {
-                    item.split(/[:,]/).forEach(word => {
-                        const clean = word.trim();
+                const items = Array.isArray(arrOrString) ? arrOrString : (arrOrString || "").split(',');
+                items.forEach(item => {
+                    item.trim().split(/[:,]/).forEach(word => {
+                        const clean = word.trim().toLowerCase();
                         if (clean && !out.includes(clean)) out.push(clean);
                     });
                 });
-                return out;
+                return out.sort();
+            }
+            
+            function parseGenericList(str) {
+                if (!str || typeof str !== 'string') return [];
+                return str.split(',')
+                          .map(item => item.trim().toLowerCase())
+                          .filter(item => item !== '')
+                          .sort();
             }
 
-            /**
-             * Creates a tile HTML element.
-             * @param {string} text - The text content of the tile.
-             * @param {string} type - The type of the tile (e.g., 'prefixes', 'roots').
-             * @param {string} colorClass - Tailwind CSS classes for the tile's color.
-             * @param {string|null} id - Optional ID for the tile element.
-             * @returns {HTMLElement} The created tile element.
-             */
             function createTileElement(text, type, colorClass, id = null) {
                 const tile = document.createElement('div');
-                tile.classList.add('tile'); // Apply base tile styling
+                tile.classList.add('tile');
                 tile.textContent = text;
-                // Store data attributes for later reference
                 tile.dataset.text = text; 
                 tile.dataset.type = type;
                 tile.dataset.color = colorClass;
-                if (id) tile.id = id; // Assign ID if provided (used for combined tiles)
-
-                // Apply specific color classes
+                if (id) tile.id = id;
                 const colors = colorClass.split(' ');
                 colors.forEach(c => tile.classList.add(c));
                 return tile;
             }
-
-            // --- RENDERING FUNCTIONS ---
-            /**
-             * Renders the tiles in the "available" sections (prefixes, roots, suffixes).
-             */
+            
             function renderAvailableTiles() {
-                // Render prefixes
-                prefixesContainer.innerHTML = ''; // Clear existing tiles
-                availableData.prefixes.forEach(text => {
-                    const tile = createTileElement(text, 'prefixes', PREFIX_COLOR);
-                    tile.addEventListener('click', () => addTileToCombination(text, 'prefixes', PREFIX_COLOR));
-                    prefixesContainer.appendChild(tile);
-                });
-                if (availableData.prefixes.length === 0) prefixesContainer.innerHTML = '<p class="text-gray-500 italic text-xs w-full text-center">No prefixes available.</p>';
-
-                // Render roots
-                rootsContainer.innerHTML = ''; // Clear existing tiles
-                availableData.roots.forEach(text => {
-                    const tile = createTileElement(text, 'roots', ROOT_COLOR);
-                    tile.addEventListener('click', () => addTileToCombination(text, 'roots', ROOT_COLOR));
-                    rootsContainer.appendChild(tile);
-                });
-                 if (availableData.roots.length === 0) rootsContainer.innerHTML = '<p class="text-gray-500 italic text-xs w-full text-center">No roots available.</p>';
-
-                // Render suffixes
-                suffixesContainer.innerHTML = ''; // Clear existing tiles
-                availableData.suffixes.forEach(text => {
-                    const tile = createTileElement(text, 'suffixes', SUFFIX_COLOR);
-                    tile.addEventListener('click', () => addTileToCombination(text, 'suffixes', SUFFIX_COLOR));
-                    suffixesContainer.appendChild(tile);
-                });
-                if (availableData.suffixes.length === 0) suffixesContainer.innerHTML = '<p class="text-gray-500 italic text-xs w-full text-center">No suffixes available.</p>';
+                renderCategoryTiles(prefixesContainer, availableData.prefixes, 'prefixes', PREFIX_COLOR, addTileToCombination);
+                renderCategoryTiles(rootsContainer, availableData.roots, 'roots', ROOT_COLOR, addTileToCombination);
+                renderCategoryTiles(suffixesContainer, availableData.suffixes, 'suffixes', SUFFIX_COLOR, addTileToCombination);
             }
 
-            /**
-             * Renders the tiles in the "combination area".
-             */
-            function renderCombinedTiles() {
-                // Clear only tile elements, leaving the placeholder if it's the only child
-                Array.from(combinationArea.children).forEach(child => {
-                    if (child !== placeholderText) { // Don't remove the placeholder itself
-                        child.remove();
-                    }
-                });
-
-                // Manage placeholder visibility
-                if (combinedTilesData.length === 0) {
-                    if (placeholderText) placeholderText.style.display = 'block'; // Show placeholder if no tiles
+            function renderCategoryTiles(container, dataArray, type, color, clickHandler) {
+                container.innerHTML = ''; 
+                if (dataArray.length === 0) {
+                    container.innerHTML = `<p class="text-gray-500 italic text-xs w-full text-center">No ${type} available.</p>`;
                 } else {
-                    if (placeholderText) placeholderText.style.display = 'none'; // Hide placeholder if there are tiles
-                    // Render each combined tile
-                    combinedTilesData.forEach(tileData => {
-                        const tileElement = createTileElement(tileData.text, tileData.type, tileData.originalColor, tileData.id);
-                        tileElement.draggable = true; // Make combined tiles draggable
-                        // Event listener to remove tile when clicked
-                        tileElement.addEventListener('click', () => removeTileFromCombination(tileData.id));
-                        // Event listeners for drag-and-drop
-                        tileElement.addEventListener('dragstart', handleDragStart);
-                        tileElement.addEventListener('dragend', handleDragEnd);
-                        
-                        combinationArea.appendChild(tileElement);
+                    dataArray.forEach(text => {
+                        const tile = createTileElement(text, type, color);
+                        tile.addEventListener('click', () => clickHandler(text, type, color));
+                        container.appendChild(tile);
                     });
                 }
             }
 
-            // --- EVENT HANDLERS & LOGIC ---
-            /**
-             * Adds a selected tile to the combination area.
-             * @param {string} text - The text of the tile.
-             * @param {string} type - The type of the tile.
-             * @param {string} colorClass - The color class of the tile.
-             */
+            function renderCombinedTiles() {
+                Array.from(combinationArea.children).forEach(child => {
+                    if (child !== placeholderText) child.remove();
+                });
+                placeholderText.style.display = combinedTilesData.length === 0 ? 'block' : 'none';
+                combinedTilesData.forEach(tileData => {
+                    const tileElement = createTileElement(tileData.text, tileData.type, tileData.originalColor, tileData.id);
+                    tileElement.draggable = true;
+                    tileElement.addEventListener('click', () => removeTileFromCombination(tileData.id));
+                    tileElement.addEventListener('dragstart', handleDragStart);
+                    tileElement.addEventListener('dragend', handleDragEnd);
+                    combinationArea.appendChild(tileElement);
+                });
+            }
+
             function addTileToCombination(text, type, colorClass) {
-                // Remove tile from the available list
                 availableData[type] = availableData[type].filter(t => t !== text);
-                
-                // Add tile to the combined list with a unique ID
                 const tileId = `combined-tile-${nextTileId++}`;
                 combinedTilesData.push({ id: tileId, text: text, type: type, originalColor: colorClass });
-                
-                // Re-render both sections
                 renderAvailableTiles();
                 renderCombinedTiles();
             }
 
-            /**
-             * Removes a tile from the combination area and returns it to the available pool.
-             * @param {string} tileId - The ID of the tile to remove.
-             */
             function removeTileFromCombination(tileId) {
                 const tileIndex = combinedTilesData.findIndex(t => t.id === tileId);
-                if (tileIndex === -1) return; // Tile not found
-
-                const removedTileData = combinedTilesData.splice(tileIndex, 1)[0]; // Remove from combined data
-                
-                // Add tile back to the appropriate available list and sort it
+                if (tileIndex === -1) return;
+                const removedTileData = combinedTilesData.splice(tileIndex, 1)[0];
                 availableData[removedTileData.type].push(removedTileData.text);
                 availableData[removedTileData.type].sort();
-
-                // Re-render both sections
                 renderAvailableTiles();
                 renderCombinedTiles();
             }
 
-            // --- DRAG AND DROP LOGIC ---
-            /**
-             * Handles the start of a drag operation.
-             * @param {DragEvent} e - The drag event.
-             */
+            // --- Teacher Controls & Sharing Logic ---
+            updateAllListsBtn.addEventListener('click', () => {
+                availableData.prefixes = parseGenericList(teacherPrefixesInput.value);
+                availableData.roots = parseRootsData(teacherRootsInput.value);
+                availableData.suffixes = parseGenericList(teacherSuffixesInput.value);
+                
+                combinedTilesData = [];
+                renderCombinedTiles();
+                renderAvailableTiles();
+                shareLinkDisplay.value = 'Lists updated. Generate a new share link.';
+                shareLinkDisplay.placeholder = 'Lists updated. Generate a new share link.';
+            });
+
+            generateShareLinkBtn.addEventListener('click', () => {
+                const dataToShare = {
+                    p: availableData.prefixes,
+                    r: availableData.roots,
+                    s: availableData.suffixes
+                };
+                const jsonString = JSON.stringify(dataToShare);
+                const encodedData = encodeURIComponent(jsonString);
+                // Ensure pathname always has a leading slash if it's not empty
+                let path = window.location.pathname;
+                if (path && !path.startsWith('/')) {
+                    path = '/' + path;
+                } else if (!path) {
+                    path = '/'; // Default to root if pathname is empty
+                }
+                const shareUrl = `${window.location.origin}${path}?words=${encodedData}`;
+                shareLinkDisplay.value = shareUrl;
+                shareLinkDisplay.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Share link copied to clipboard!'); // Simple feedback
+                } catch (err) {
+                    console.warn('Failed to copy link automatically. Please copy manually.');
+                    alert('Failed to copy link automatically. Please copy manually from the input field.');
+                }
+            });
+
+            function loadDataFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const wordDataParam = urlParams.get('words');
+                if (wordDataParam) {
+                    try {
+                        // This is a student view or a teacher re-opening a shared link
+                        teacherControlsSection.style.display = 'none'; // Hide teacher controls for student
+
+                        const decodedData = decodeURIComponent(wordDataParam);
+                        const parsedData = JSON.parse(decodedData);
+                        if (parsedData.p && parsedData.r && parsedData.s) {
+                            availableData.prefixes = parsedData.p.sort();
+                            availableData.roots = parsedData.r.sort(); 
+                            availableData.suffixes = parsedData.s.sort();
+                            return true; 
+                        }
+                    } catch (error) {
+                        console.error("Error parsing word data from URL:", error);
+                        availableData = JSON.parse(JSON.stringify(defaultAvailableData)); // Fallback
+                        teacherControlsSection.style.display = 'block'; // Show controls if URL parse fails (likely teacher)
+                    }
+                } else {
+                    // This is a teacher view (no 'words' param)
+                    teacherControlsSection.style.display = 'block'; // Ensure teacher controls are visible
+                    // Populate teacher inputs with defaults
+                    teacherPrefixesInput.value = defaultAvailableData.prefixes.join(', ');
+                    teacherRootsInput.value = defaultAvailableData.roots.join(', '); 
+                    teacherSuffixesInput.value = defaultAvailableData.suffixes.join(', ');
+                }
+                return false; 
+            }
+
+            // --- Drag and Drop Logic (unchanged) ---
             function handleDragStart(e) {
-                draggedTile = e.target; // Store the element being dragged
-                e.dataTransfer.setData('text/plain', e.target.id); // Necessary for Firefox compatibility
-                e.target.classList.add('dragging'); // Add styling to the dragged tile
+                draggedTile = e.target; 
+                e.dataTransfer.setData('text/plain', e.target.id); 
+                e.target.classList.add('dragging');
             }
-
-            /**
-             * Handles the end of a drag operation.
-             * @param {DragEvent} e - The drag event.
-             */
             function handleDragEnd(e) {
-                e.target.classList.remove('dragging'); // Remove dragging style
-                draggedTile = null; // Clear the reference to the dragged tile
+                e.target.classList.remove('dragging');
+                draggedTile = null;
             }
-
-            // Event listener for when a dragged item is over the combination area
             combinationArea.addEventListener('dragover', (e) => {
-                e.preventDefault(); // Allow the drop operation
-                const afterElement = getDragAfterElement(combinationArea, e.clientX); // Determine insertion point
-                if (draggedTile) { // Ensure a tile is actually being dragged
-                    if (afterElement == null) { // If no element to insert before, append to end
+                e.preventDefault(); 
+                const afterElement = getDragAfterElement(combinationArea, e.clientX);
+                if (draggedTile) { 
+                    if (afterElement == null) {
                         combinationArea.appendChild(draggedTile);
-                    } else { // Otherwise, insert before the determined element
+                    } else {
                         combinationArea.insertBefore(draggedTile, afterElement);
                     }
                 }
             });
-            
-            // Event listener for when a dragged item is dropped onto the combination area
             combinationArea.addEventListener('drop', (e) => {
                 e.preventDefault(); 
-                // Update the underlying data array based on the new DOM order of tiles
                 const newOrder = Array.from(combinationArea.children)
-                                    .filter(child => child.id && child.id.startsWith('combined-tile-')) // Consider only actual tiles
+                                    .filter(child => child.id && child.id.startsWith('combined-tile-')) 
                                     .map(tileElement => combinedTilesData.find(data => data.id === tileElement.id));
-                combinedTilesData = newOrder.filter(item => item !== undefined); // Clean up any potential undefined items
-                
-                // Re-render to ensure data and DOM are perfectly synchronized after drop
+                combinedTilesData = newOrder.filter(item => item !== undefined); 
                 renderCombinedTiles(); 
             });
-
-            /**
-             * Determines which element the dragged tile should be placed before.
-             * @param {HTMLElement} container - The container element (combinationArea).
-             * @param {number} x - The horizontal mouse coordinate.
-             * @returns {HTMLElement|null} The element to insert before, or null to append.
-             */
             function getDragAfterElement(container, x) {
-                const draggableElements = [...container.querySelectorAll('.tile:not(.dragging)')]; // Get all draggable tiles except the one being dragged
+                const draggableElements = [...container.querySelectorAll('.tile:not(.dragging)')];
                 return draggableElements.reduce((closest, child) => {
-                    const box = child.getBoundingClientRect(); // Get dimensions and position of the child tile
-                    // Calculate the offset of the mouse from the center of the child tile
+                    const box = child.getBoundingClientRect();
                     const offset = x - box.left - box.width / 2; 
-                    // If the mouse is to the left of the center and closer than previous closest, update closest
                     if (offset < 0 && offset > closest.offset) {
                         return { offset: offset, element: child };
                     } else {
                         return closest;
                     }
-                }, { offset: Number.NEGATIVE_INFINITY }).element; // Initial closest is infinitely far to the left
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
             }
 
-            // --- INITIAL SETUP ---
-            renderAvailableTiles(); // Render the initial set of available tiles
-            // Ensure placeholder is correctly displayed or hidden on initial load
+            // --- Initial Setup ---
+            loadDataFromUrl(); // Load data from URL first, this will also handle teacher controls visibility
+            renderAvailableTiles();
             if (placeholderText) {
                  placeholderText.style.display = combinedTilesData.length === 0 ? 'block' : 'none';
             }
@@ -353,4 +420,3 @@
     </script>
 </body>
 </html>
-

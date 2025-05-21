@@ -3,419 +3,533 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Builder</title>
+    <title>Word Phoneme Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
-            margin: 0;
-        }
-        .tile {
-            display: inline-block;
-            padding: 0.125rem 0.5rem; 
-            margin: 0.125rem; 
-            border-radius: 0.375rem; 
-            border-width: 1px;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
-            font-size: 0.75rem; 
-            font-weight: 500; 
-            cursor: pointer;
-            transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        }
-        .tile:hover {
-            transform: scale(1.08);
-        }
-        .tile.dragging {
-            opacity: 0.5;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2), 0 4px 6px -2px rgba(0,0,0,0.1);
-        }
-        .drop-zone {
-            min-height: 120px; 
-            padding: 0.75rem; 
-            border-width: 2px;
-            border-style: dashed;
-            border-color: #d1d5db; 
-            border-radius: 0.5rem; 
-            background-color: #ffffff; 
-            gap: 0.125rem; 
-            display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
-        .card {
-            border-radius: 0.75rem; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); 
-        }
-        .card-content {
-            padding: 1.25rem; 
-        }
-        .placeholder-text {
-            color: #9ca3af; 
-            font-style: italic;
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             width: 100%;
+            max-width: 800px;
+        }
+        h1, h2 {
+            font-weight: 600;
+            color: #1f2937;
             text-align: center;
-            font-size: 0.875rem; 
         }
-        /* Removed .input-group and related styles for individual add buttons as they are no longer used */
-        .input-group textarea { /* Kept for teacher section */
-            flex-grow: 1;
-            padding: 0.375rem 0.5rem;
-            font-size: 0.875rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            min-height: 60px;
-            resize: vertical;
-            width: 100%; /* Ensure textarea takes full width */
-        }
-        .input-group textarea:focus {
-            outline: none;
-            border-color: #2563eb; 
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); 
-        }
-        .action-button {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.875rem; 
-            font-weight: 500; 
+        h1 { font-size: 1.875rem; margin-bottom: 1.5rem; }
+        h2 { font-size: 1.5rem; margin-bottom: 1rem; }
+
+        /* Main View Styles */
+        .main-view label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem; }
+        .main-view textarea { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 1rem; line-height: 1.5; min-height: 100px; box-shadow: inset 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .main-view textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+        .action-button { background-color: #4f46e5; color: white; font-weight: 500; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: background-color 0.15s ease-in-out; display: block; margin: 1.5rem auto 0; }
+        .action-button:hover { background-color: #4338ca; }
+        .action-button:disabled { background-color: #a5b4fc; cursor: not-allowed; }
+        
+        .download-button {
+            background-color: #10b981; /* Green */
             color: white;
-            background-color: #3b82f6; 
-            border: 1px solid #3b82f6; 
+            font-weight: 500;
+            padding: 0.6rem 1.2rem; 
+            border-radius: 0.5rem;
+            border: none;
             cursor: pointer;
             transition: background-color 0.15s ease-in-out;
-            border-radius: 0.375rem; /* rounded-md */
-            margin-top: 0.5rem;
-            display: block; 
-            width: 100%; 
+            display: block;
         }
-        .action-button:hover {
-            background-color: #2563eb; 
+        .download-button:hover {
+            background-color: #059669;
         }
-        .teacher-section {
-            background-color: #e0f2fe; 
-            padding: 1rem;
-            border-radius: 0.5rem; 
-            margin-bottom: 1.5rem; 
+        .download-button:disabled {
+            background-color: #6ee7b7;
+            cursor: not-allowed;
         }
-        .teacher-section h3 {
+
+        #outputArea { margin-top: 2rem; color: #374151; }
+        
+        .analyzed-word-entry { 
+            padding: 0.5rem 0;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb; 
+        }
+        .analyzed-word-entry:last-child {
+            border-bottom: none; 
+        }
+
+        .status-message { font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; min-height: 1em; }
+        .phoneme-display-direct { 
+            padding: 0.5rem; 
+            background-color: #f9fafb; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 0.375rem; 
+            text-align: left; 
+        }
+
+        /* --- Phoneme visual indicators --- */
+        .phoneme-display-direct span {
+            display: inline-block;
+            margin-right: 4px;
+            margin-bottom: 8px;
+            position: relative;
+            padding: 0 2px 10px 2px; /* Padding at bottom for indicators */
+            min-width: 15px;
+            text-align: center;
             font-size: 1.125rem; 
-            font-weight: 600; 
-            margin-bottom: 0.75rem; 
-            color: #0c4a6e; 
         }
-        .share-link-display {
+        .phoneme-display-direct span.silent {
+            color: #9ca3af;
+        }
+        /* Dot for single, non-silent letters (unless it's a silent-e-marker) */
+        .phoneme-display-direct span.single-letter:not(.silent-e-marker)::after {
+            content: '';
+            position: absolute;
+            bottom: 4px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: #4f46e5; 
+            border-radius: 50%;
+        }
+        /* Line for multi-letter, non-silent phonemes */
+        .phoneme-display-direct span.multi-letter::after {
+            content: '';
+            position: absolute;
+            bottom: 6px; 
+            left: 0; 
             width: 100%;
-            padding: 0.5rem;
-            margin-top: 0.5rem;
-            font-size: 0.875rem;
-            border: 1px solid #ccc;
-            border-radius: 0.25rem;
-            background-color: #f9f9f9;
-            word-break: break-all; 
+            height: 2px; 
+            background-color: #4f46e5; 
+        }
+        /* '#' symbol under silent 'e' at the end of a word */
+        .phoneme-display-direct span.silent-e-marker::after {
+            content: '#';
+            position: absolute;
+            bottom: 0px; /* Position # within the bottom padding area */
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4f46e5; /* Blue # */
+            font-size: 0.9em; /* Slightly smaller # */
+            font-weight: bold;
+            line-height: 1; /* Ensure it doesn't take too much vertical space */
+        }
+        /* --- End of Phoneme visual indicators --- */
+
+        /* Message Box Styles */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .message-box {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        .message-box h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        .message-box p {
+            margin-bottom: 1.5rem;
+            color: #374151;
+        }
+        .message-box button {
+            background-color: #4f46e5;
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .message-box button:hover {
+            background-color: #4338ca;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="max-w-4xl w-full mx-auto py-8 px-4">
-        <h1 class="text-4xl font-bold text-center mb-8 text-gray-700">Word Builder</h1>
-
-        <div id="teacher-controls-section" class="teacher-section"> <h3>Teacher Controls</h3>
-            <p class="text-sm text-gray-600 mb-2">Enter comma-separated lists below to update the word parts for this session.</p>
-            
-            <label for="teacher-prefixes-input" class="block text-sm font-medium text-gray-700 mt-2">Prefixes:</label>
-            <textarea id="teacher-prefixes-input" class="input-group textarea" placeholder="e.g., pre, un, re"></textarea>
-            
-            <label for="teacher-roots-input" class="block text-sm font-medium text-gray-700 mt-2">Roots/Morphemes:</label>
-            <textarea id="teacher-roots-input" class="input-group textarea" placeholder="e.g., act, port, spect:inspect"></textarea>
-            
-            <label for="teacher-suffixes-input" class="block text-sm font-medium text-gray-700 mt-2">Suffixes:</label>
-            <textarea id="teacher-suffixes-input" class="input-group textarea" placeholder="e.g., tion, able, ly"></textarea>
-            
-            <button id="update-all-lists-btn" class="action-button bg-green-500 hover:bg-green-600 border-green-500 hover:border-green-600">Load These Custom Lists</button>
-            
-            <hr class="my-4">
-            
-            <button id="generate-share-link-btn" class="action-button">Generate Share Link with Current Lists</button>
-            <input type="text" id="share-link-display" class="share-link-display" readonly placeholder="Shareable link will appear here...">
-        </div>
-
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="card bg-white">
-                <div class="card-content">
-                    <h2 class="text-2xl font-semibold mb-4 text-blue-600">Prefixes</h2> 
-                    <div id="prefixes-container" class="flex flex-wrap gap-0.5"></div>
+    <div id="mainAppContainer" class="container">
+        <h1>Word Phoneme Analyzer</h1>
+        <div class="main-view">
+            <label for="wordInput">Enter words (one per line):</label>
+            <textarea id="wordInput" rows="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="e.g.,&#x0A;apple&#x0A;rabbit&#x0A;make&#x0A;kite&#x0A;light&#x0A;boat&#x0A;star"></textarea>
+            <button id="analyzeWordsButton" class="action-button">Analyze Words</button>
+            <div id="outputArea" class="mt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-left text-xl font-semibold">Analyzed Words:</h2>
+                    <button id="downloadHtmlButton" class="download-button" disabled>Download Results (HTML)</button>
                 </div>
-            </div>
-            <div class="card bg-white">
-                <div class="card-content">
-                    <h2 class="text-2xl font-semibold mb-4 text-green-600">Root Words & Morphemes</h2>
-                    <div id="roots-container" class="flex flex-wrap gap-0.5"></div>
-                </div>
-            </div>
-            <div class="card bg-white">
-                <div class="card-content">
-                    <h2 class="text-2xl font-semibold mb-4 text-pink-600">Suffixes</h2>
-                    <div id="suffixes-container" class="flex flex-wrap gap-0.5"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card bg-gray-50">
-            <div class="card-content">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Combine Tiles Here</h2>
-                <div id="combination-area" class="drop-zone">
-                    <span class="placeholder-text">Click tiles from above to add them here!</span>
-                </div>
+                <div id="wordList" class="space-y-0"> 
+                    </div>
+                <p id="analysisStatus" class="status-message text-center mt-4"></p>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const PREFIX_COLOR = "bg-blue-200 border-blue-400";
-            const ROOT_COLOR = "bg-green-200 border-green-400";
-            const SUFFIX_COLOR = "bg-pink-200 border-pink-400";
+    <div id="messageBoxOverlay" class="message-box-overlay hidden">
+        <div class="message-box">
+            <h3 id="messageBoxTitle"></h3>
+            <p id="messageBoxContent"></p>
+            <button id="messageBoxCloseButton">OK</button>
+        </div>
+    </div>
 
-            const defaultAvailableData = {
-                prefixes: ["abs", "anti", "at", "con", "dis", "e", "en", "ex", "in", "per", "pro", "re", "sub", "trans"],
-                roots: parseRootsData(["act", "anim:animate", "vac:vacate", "inspect:spect:speculate:respect", "tract:distract", "spir:inspire"]),
-                suffixes: ["or", "tion", "al", "able", "ation", "ator", "atory", "ion"]
+    <script type="module">
+        // Global variables for Firebase configuration (not used in this version)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // State variables
+        let analyzedWords = []; 
+
+        // DOM Elements
+        const mainAppContainer = document.getElementById('mainAppContainer');
+        const wordInput = document.getElementById('wordInput');
+        const analyzeWordsButton = document.getElementById('analyzeWordsButton');
+        const wordListDiv = document.getElementById('wordList');
+        const analysisStatus = document.getElementById('analysisStatus');
+        const downloadHtmlButton = document.getElementById('downloadHtmlButton');
+
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageBoxTitle = document.getElementById('messageBoxTitle');
+        const messageBoxContent = document.getElementById('messageBoxContent');
+        const messageBoxCloseButton = document.getElementById('messageBoxCloseButton');
+
+        // --- Utility Functions ---
+        function showMessageBox(title, message) {
+            messageBoxTitle.textContent = title;
+            messageBoxContent.textContent = message;
+            messageBoxOverlay.classList.remove('hidden');
+        }
+
+        function hideMessageBox() {
+            messageBoxOverlay.classList.add('hidden');
+        }
+
+        // --- Gemini API Integration ---
+        async function analyzeWords() {
+            analysisStatus.textContent = 'Analyzing words... This might take a moment.';
+            analyzeWordsButton.disabled = true;
+            downloadHtmlButton.disabled = true; 
+            wordListDiv.innerHTML = ''; 
+
+            const wordsToAnalyze = wordInput.value.split('\n')
+                                                .map(word => word.trim())
+                                                .filter(word => word !== '');
+
+            if (wordsToAnalyze.length === 0) {
+                showMessageBox("Input Required", "Please enter words to analyze.");
+                analysisStatus.textContent = '';
+                analyzeWordsButton.disabled = false;
+                return;
+            }
+
+            let chatHistory = [];
+            // Prompt for silent 'e': AI should return text: "e", isSilent: true
+            const promptText = `For each of the following words, provide its phonetic breakdown as an array of phoneme segments.
+IMPORTANT PHONEME SEGMENTATION RULES:
+1.  **Accuracy First:** Ensure all letters in the word are accounted for.
+2.  **Silent Letters:** If a letter is silent, its "isSilent" property MUST be true.
+3.  **Digraphs & Trigraphs:** Preserve common consonant digraphs (e.g., "ph", "ch", "sh", "th", "ck", "kn", "gh", "wr") and trigraphs (e.g., "tch", "dge") as single phoneme units.
+4.  **Doubled Consonants:** Treat doubled consonants (e.g., "bb" in "rabbit", "ss" in "miss") as a single phoneme unit.
+5.  **Vowel Teams:** Treat vowel teams (e.g., "ea" in "read", "ai" in "rain", "ou" in "house", "oa" in "boat") as single phoneme units.
+6.  **R-Controlled Vowels:** Treat r-controlled vowels (e.g., "ar" in "car", "er" in "her", "ir" in "bird") as single phoneme units.
+7.  **Longer Spelling Patterns:** Treat longer common spelling patterns (e.g., "igh" in "light", "eigh" in "eight") as single phoneme units.
+8.  **Silent 'e' at Word End:** If a word ends with a silent 'e' that primarily affects the preceding vowel sound (e.g., "make", "hope", "like", "kite"), this phoneme segment should be {text: "e", isSilent: true}.
+
+EXAMPLES:
+- { "word": "rabbit", "phonemes": [{text: "r", isSilent: false}, {text: "a", isSilent: false}, {text: "bb", isSilent: false}, {text: "i", isSilent: false}, {text: "t", isSilent: false}] }
+- { "word": "make", "phonemes": [{text: "m", isSilent: false}, {text: "a", isSilent: false}, {text: "k", isSilent: false}, {text: "e", isSilent: true}] }
+- { "word": "kite", "phonemes": [{text: "k", isSilent: false}, {text: "i", isSilent: false}, {text: "t", isSilent: false}, {text: "e", isSilent: true}] }
+- { "word": "light", "phonemes": [{text: "l", isSilent: false}, {text: "igh", isSilent: false}, {text: "t", isSilent: false}] }
+- { "word": "phone", "phonemes": [{text: "ph", isSilent: false}, {text: "o", isSilent: false}, {text: "n", isSilent: false}, {text: "e", isSilent: true}] }
+- { "word": "graph", "phonemes": [{text: "g", isSilent: false}, {text: "r", isSilent: false}, {text: "a", isSilent: false}, {text: "ph", isSilent: false}] }
+
+Here are the words: ${JSON.stringify(wordsToAnalyze)}`;
+            chatHistory.push({ role: "user", parts: [{ text: promptText }] });
+            
+            const payload = {
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: { 
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "word": { "type": "STRING" }, 
+                                "phonemes": {
+                                    "type": "ARRAY",
+                                    "items": {
+                                        "type": "OBJECT",
+                                        "properties": {
+                                            "text": { "type": "STRING" },
+                                            "isSilent": { "type": "BOOLEAN" }
+                                        }
+                                    }
+                                }
+                            },
+                            "propertyOrdering": ["word", "phonemes"] 
+                        }
+                    }
+                }
             };
 
-            let availableData = JSON.parse(JSON.stringify(defaultAvailableData)); 
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-            let combinedTilesData = []; 
-            let nextTileId = 0;
-            let draggedTile = null; 
-
-            const prefixesContainer = document.getElementById('prefixes-container');
-            const rootsContainer = document.getElementById('roots-container');
-            const suffixesContainer = document.getElementById('suffixes-container');
-            const combinationArea = document.getElementById('combination-area');
-            const placeholderText = combinationArea.querySelector('.placeholder-text');
-
-            // Teacher section elements
-            const teacherControlsSection = document.getElementById('teacher-controls-section'); // Added ID here
-            const teacherPrefixesInput = document.getElementById('teacher-prefixes-input');
-            const teacherRootsInput = document.getElementById('teacher-roots-input');
-            const teacherSuffixesInput = document.getElementById('teacher-suffixes-input');
-            const updateAllListsBtn = document.getElementById('update-all-lists-btn');
-            const generateShareLinkBtn = document.getElementById('generate-share-link-btn');
-            const shareLinkDisplay = document.getElementById('share-link-display');
-
-
-            function parseRootsData(arrOrString) {
-                let out = [];
-                const items = Array.isArray(arrOrString) ? arrOrString : (arrOrString || "").split(',');
-                items.forEach(item => {
-                    item.trim().split(/[:,]/).forEach(word => {
-                        const clean = word.trim().toLowerCase();
-                        if (clean && !out.includes(clean)) out.push(clean);
-                    });
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-                return out.sort();
-            }
-            
-            function parseGenericList(str) {
-                if (!str || typeof str !== 'string') return [];
-                return str.split(',')
-                          .map(item => item.trim().toLowerCase())
-                          .filter(item => item !== '')
-                          .sort();
-            }
 
-            function createTileElement(text, type, colorClass, id = null) {
-                const tile = document.createElement('div');
-                tile.classList.add('tile');
-                tile.textContent = text;
-                tile.dataset.text = text; 
-                tile.dataset.type = type;
-                tile.dataset.color = colorClass;
-                if (id) tile.id = id;
-                const colors = colorClass.split(' ');
-                colors.forEach(c => tile.classList.add(c));
-                return tile;
-            }
-            
-            function renderAvailableTiles() {
-                renderCategoryTiles(prefixesContainer, availableData.prefixes, 'prefixes', PREFIX_COLOR, addTileToCombination);
-                renderCategoryTiles(rootsContainer, availableData.roots, 'roots', ROOT_COLOR, addTileToCombination);
-                renderCategoryTiles(suffixesContainer, availableData.suffixes, 'suffixes', SUFFIX_COLOR, addTileToCombination);
-            }
-
-            function renderCategoryTiles(container, dataArray, type, color, clickHandler) {
-                container.innerHTML = ''; 
-                if (dataArray.length === 0) {
-                    container.innerHTML = `<p class="text-gray-500 italic text-xs w-full text-center">No ${type} available.</p>`;
-                } else {
-                    dataArray.forEach(text => {
-                        const tile = createTileElement(text, type, color);
-                        tile.addEventListener('click', () => clickHandler(text, type, color));
-                        container.appendChild(tile);
-                    });
+                if (!response.ok) {
+                    let errorDataText = await response.text();
+                    let errorData;
+                    try { errorData = JSON.parse(errorDataText); } catch (e) { errorData = { error: { message: errorDataText || "Non-JSON error response" } }; }
+                    throw new Error(`API error: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`);
                 }
-            }
 
-            function renderCombinedTiles() {
-                Array.from(combinationArea.children).forEach(child => {
-                    if (child !== placeholderText) child.remove();
-                });
-                placeholderText.style.display = combinedTilesData.length === 0 ? 'block' : 'none';
-                combinedTilesData.forEach(tileData => {
-                    const tileElement = createTileElement(tileData.text, tileData.type, tileData.originalColor, tileData.id);
-                    tileElement.draggable = true;
-                    tileElement.addEventListener('click', () => removeTileFromCombination(tileData.id));
-                    tileElement.addEventListener('dragstart', handleDragStart);
-                    tileElement.addEventListener('dragend', handleDragEnd);
-                    combinationArea.appendChild(tileElement);
-                });
-            }
+                const result = await response.json();
 
-            function addTileToCombination(text, type, colorClass) {
-                availableData[type] = availableData[type].filter(t => t !== text);
-                const tileId = `combined-tile-${nextTileId++}`;
-                combinedTilesData.push({ id: tileId, text: text, type: type, originalColor: colorClass });
-                renderAvailableTiles();
-                renderCombinedTiles();
-            }
-
-            function removeTileFromCombination(tileId) {
-                const tileIndex = combinedTilesData.findIndex(t => t.id === tileId);
-                if (tileIndex === -1) return;
-                const removedTileData = combinedTilesData.splice(tileIndex, 1)[0];
-                availableData[removedTileData.type].push(removedTileData.text);
-                availableData[removedTileData.type].sort();
-                renderAvailableTiles();
-                renderCombinedTiles();
-            }
-
-            // --- Teacher Controls & Sharing Logic ---
-            updateAllListsBtn.addEventListener('click', () => {
-                availableData.prefixes = parseGenericList(teacherPrefixesInput.value);
-                availableData.roots = parseRootsData(teacherRootsInput.value);
-                availableData.suffixes = parseGenericList(teacherSuffixesInput.value);
-                
-                combinedTilesData = [];
-                renderCombinedTiles();
-                renderAvailableTiles();
-                shareLinkDisplay.value = 'Lists updated. Generate a new share link.';
-                shareLinkDisplay.placeholder = 'Lists updated. Generate a new share link.';
-            });
-
-            generateShareLinkBtn.addEventListener('click', () => {
-                const dataToShare = {
-                    p: availableData.prefixes,
-                    r: availableData.roots,
-                    s: availableData.suffixes
-                };
-                const jsonString = JSON.stringify(dataToShare);
-                const encodedData = encodeURIComponent(jsonString);
-                // Ensure pathname always has a leading slash if it's not empty
-                let path = window.location.pathname;
-                if (path && !path.startsWith('/')) {
-                    path = '/' + path;
-                } else if (!path) {
-                    path = '/'; // Default to root if pathname is empty
-                }
-                const shareUrl = `${window.location.origin}${path}?words=${encodedData}`;
-                shareLinkDisplay.value = shareUrl;
-                shareLinkDisplay.select();
-                try {
-                    document.execCommand('copy');
-                    alert('Share link copied to clipboard!'); // Simple feedback
-                } catch (err) {
-                    console.warn('Failed to copy link automatically. Please copy manually.');
-                    alert('Failed to copy link automatically. Please copy manually from the input field.');
-                }
-            });
-
-            function loadDataFromUrl() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const wordDataParam = urlParams.get('words');
-                if (wordDataParam) {
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const jsonString = result.candidates[0].content.parts[0].text;
+                    
                     try {
-                        // This is a student view or a teacher re-opening a shared link
-                        teacherControlsSection.style.display = 'none'; // Hide teacher controls for student
+                        const parsedWords = JSON.parse(jsonString);
 
-                        const decodedData = decodeURIComponent(wordDataParam);
-                        const parsedData = JSON.parse(decodedData);
-                        if (parsedData.p && parsedData.r && parsedData.s) {
-                            availableData.prefixes = parsedData.p.sort();
-                            availableData.roots = parsedData.r.sort(); 
-                            availableData.suffixes = parsedData.s.sort();
-                            return true; 
+                        if (!Array.isArray(parsedWords)) {
+                            throw new Error("API response format error: Expected an array of words.");
                         }
-                    } catch (error) {
-                        console.error("Error parsing word data from URL:", error);
-                        availableData = JSON.parse(JSON.stringify(defaultAvailableData)); // Fallback
-                        teacherControlsSection.style.display = 'block'; // Show controls if URL parse fails (likely teacher)
+
+                        analyzedWords = parsedWords.map(wordObj => {
+                            if (!wordObj || typeof wordObj.word !== 'string' || !Array.isArray(wordObj.phonemes)) {
+                                console.warn("[DEBUG] Invalid word object structure from API (expected word and phonemes):", wordObj);
+                                return null;
+                            }
+                            return { 
+                                word: wordObj.word, 
+                                phonemes: wordObj.phonemes.map(p => ({
+                                    text: p && typeof p.text === 'string' ? p.text : "",
+                                    isSilent: p && typeof p.isSilent === 'boolean' ? p.isSilent : false
+                                }))
+                            };
+                        }).filter(Boolean); 
+
+                        renderAnalyzedWords();
+                        analysisStatus.textContent = analyzedWords.length > 0 ? 'Words analyzed successfully!' : 'Analysis complete, but no valid word data was returned.';
+                        downloadHtmlButton.disabled = analyzedWords.length === 0;
+                    } catch (parseError) {
+                        throw new Error(`Failed to parse analysis data: ${parseError.message}`);
                     }
                 } else {
-                    // This is a teacher view (no 'words' param)
-                    teacherControlsSection.style.display = 'block'; // Ensure teacher controls are visible
-                    // Populate teacher inputs with defaults
-                    teacherPrefixesInput.value = defaultAvailableData.prefixes.join(', ');
-                    teacherRootsInput.value = defaultAvailableData.roots.join(', '); 
-                    teacherSuffixesInput.value = defaultAvailableData.suffixes.join(', ');
+                    showMessageBox("Analysis Failed", "Could not retrieve analysis from the API. The response structure was unexpected.");
+                    analysisStatus.textContent = 'Failed to analyze words: Unexpected API response.';
+                    downloadHtmlButton.disabled = true;
                 }
-                return false; 
+            } catch (error) {
+                console.error("[DEBUG] Error in analyzeWords function:", error);
+                showMessageBox("Error", `Failed to analyze words: ${error.message}. Check the console for more details.`);
+                analysisStatus.textContent = `Error: ${error.message}`;
+                downloadHtmlButton.disabled = true;
+            } finally {
+                analyzeWordsButton.disabled = false;
+            }
+        }
+
+        // --- Main View Functions ---
+        function renderAnalyzedWords() {
+            wordListDiv.innerHTML = '';
+            if (analyzedWords.length === 0) {
+                wordListDiv.innerHTML = '<p class="text-gray-500">No words analyzed yet. Enter words above and click "Analyze Words".</p>';
+                downloadHtmlButton.disabled = true; 
+                return;
             }
 
-            // --- Drag and Drop Logic (unchanged) ---
-            function handleDragStart(e) {
-                draggedTile = e.target; 
-                e.dataTransfer.setData('text/plain', e.target.id); 
-                e.target.classList.add('dragging');
-            }
-            function handleDragEnd(e) {
-                e.target.classList.remove('dragging');
-                draggedTile = null;
-            }
-            combinationArea.addEventListener('dragover', (e) => {
-                e.preventDefault(); 
-                const afterElement = getDragAfterElement(combinationArea, e.clientX);
-                if (draggedTile) { 
-                    if (afterElement == null) {
-                        combinationArea.appendChild(draggedTile);
-                    } else {
-                        combinationArea.insertBefore(draggedTile, afterElement);
+            analyzedWords.forEach((wordObj) => {
+                const wordEntryDiv = document.createElement('div'); 
+                wordEntryDiv.className = 'analyzed-word-entry'; 
+
+                const originalWordActual = wordObj.word; // Store the original word for the check
+
+                const phonemeSpans = (wordObj.phonemes || []).map((p, pIndex, phonemesArray) => {
+                    let classes = '';
+                    const isLastPhoneme = pIndex === phonemesArray.length - 1;
+                    const isPhonemeTextE = p.text.toLowerCase() === 'e';
+                    const originalWordEndsWithE = originalWordActual.toLowerCase().endsWith('e');
+
+                    // More assertive client-side check for silent 'e' at the end of a word
+                    if (isPhonemeTextE && isLastPhoneme && originalWordEndsWithE) {
+                        // If it's the last phoneme, is 'e', and the original word ends with 'e',
+                        // we treat it as the special silent 'e', regardless of AI's isSilent flag for this specific 'e'.
+                        // The AI is still expected to mark it silent based on the prompt, but this is a fallback.
+                        classes = 'silent silent-e-marker'; 
+                    } else if (p.isSilent) {
+                        classes = 'silent';
+                        // If a silent phoneme is multi-letter, it currently just appears grey.
+                        // To add an underline for silent multi-letter phonemes, you could add:
+                        // if (p.text.length > 1) { classes += ' multi-letter'; }
+                        // And then ensure CSS for .silent.multi-letter::after exists if needed.
+                    } else { // Not silent
+                        if (p.text.length === 1) {
+                            classes = 'single-letter';
+                        } else if (p.text.length > 1) {
+                            classes = 'multi-letter';
+                        }
                     }
-                }
+                    return `<span class="${classes.trim()}">${p.text}</span>`;
+                }).join('');
+                
+                wordEntryDiv.innerHTML = `
+                    <div class="phoneme-display-direct">
+                        ${phonemeSpans || '<em class="text-gray-500 text-sm">No phonemes.</em>'}
+                    </div>
+                `;
+                wordListDiv.appendChild(wordEntryDiv);
             });
-            combinationArea.addEventListener('drop', (e) => {
-                e.preventDefault(); 
-                const newOrder = Array.from(combinationArea.children)
-                                    .filter(child => child.id && child.id.startsWith('combined-tile-')) 
-                                    .map(tileElement => combinedTilesData.find(data => data.id === tileElement.id));
-                combinedTilesData = newOrder.filter(item => item !== undefined); 
-                renderCombinedTiles(); 
-            });
-            function getDragAfterElement(container, x) {
-                const draggableElements = [...container.querySelectorAll('.tile:not(.dragging)')];
-                return draggableElements.reduce((closest, child) => {
-                    const box = child.getBoundingClientRect();
-                    const offset = x - box.left - box.width / 2; 
-                    if (offset < 0 && offset > closest.offset) {
-                        return { offset: offset, element: child };
-                    } else {
-                        return closest;
-                    }
-                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            downloadHtmlButton.disabled = false; 
+        }
+
+        // --- HTML Download Function ---
+        function downloadHtmlResults() {
+            if (analyzedWords.length === 0) {
+                showMessageBox("No Data", "There are no analyzed words to download.");
+                return;
             }
 
-            // --- Initial Setup ---
-            loadDataFromUrl(); // Load data from URL first, this will also handle teacher controls visibility
-            renderAvailableTiles();
-            if (placeholderText) {
-                 placeholderText.style.display = combinedTilesData.length === 0 ? 'block' : 'none';
+            let styles = "";
+            const mainStyleTag = document.querySelector('head > style');
+            if (mainStyleTag) {
+                 styles += mainStyleTag.innerHTML;
+            } else { 
+                for (let i = 0; i < document.styleSheets.length; i++) {
+                    const sheet = document.styleSheets[i];
+                    if (sheet.ownerNode && sheet.ownerNode.tagName === 'STYLE') {
+                        try { styles += sheet.ownerNode.innerHTML; } catch (e) { console.warn("Could not access rules from stylesheet:", sheet.href, e); }
+                    }
+                }
             }
+
+            const wordListItemsHtml = analyzedWords.map(wordObj => {
+                const originalWordActual = wordObj.word;
+                const phonemeSpans = (wordObj.phonemes || []).map((p, pIndex, phonemesArray) => {
+                    let classes = '';
+                    const isLastPhoneme = pIndex === phonemesArray.length - 1;
+                    const isPhonemeTextE = p.text.toLowerCase() === 'e';
+                    const originalWordEndsWithE = originalWordActual.toLowerCase().endsWith('e');
+
+                    if (isPhonemeTextE && isLastPhoneme && originalWordEndsWithE) {
+                        classes = 'silent silent-e-marker';
+                    } else if (p.isSilent) {
+                        classes = 'silent';
+                    } else { 
+                        if (p.text.length === 1) {
+                            classes = 'single-letter';
+                        } else if (p.text.length > 1) {
+                            classes = 'multi-letter';
+                        }
+                    }
+                    return `<span class="${classes.trim()}">${p.text}</span>`;
+                }).join('');
+                return `
+                    <div class="analyzed-word-entry">
+                        <div class="phoneme-display-direct">
+                            ${phonemeSpans || '<em class="text-gray-500 text-sm">No phonemes.</em>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Analyzed Words Report</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; padding: 20px; margin: 0; }
+                        .download-container { background-color: white; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); max-width: 800px; margin: 20px auto; }
+                        h1 { font-size: 1.875rem; margin-bottom: 1.5rem; font-weight: 600; color: #1f2937; text-align: center; }
+                        
+                        ${styles} /* Includes all phoneme indicator styles from main page */
+
+                        /* Ensure styles for the list structure are explicitly defined for the download */
+                        .analyzed-word-entry { padding: 0.5rem 0; margin-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; }
+                        .analyzed-word-entry:last-child { border-bottom: none; }
+                        .phoneme-display-direct { padding: 0.5rem; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; text-align: left; }
+                        /* Phoneme span styles are already in the 'styles' variable if captured correctly from the main <style> tag */
+                        /* Explicitly add .silent-e-marker for downloaded file if not fully captured by general styles */
+                        .phoneme-display-direct span.silent-e-marker::after { content: '#'; position: absolute; bottom: 0px; left: 50%; transform: translateX(-50%); color: #4f46e5; font-size: 0.9em; font-weight: bold; line-height: 1; }
+                        .phoneme-display-direct span.silent-e-marker.silent { color: #9ca3af; } /* Ensure silent 'e' text is grey */
+
+
+                    </style>
+                </head>
+                <body>
+                    <div class="download-container">
+                        <h1>Analyzed Words Report</h1>
+                        <div> 
+                            ${wordListItemsHtml}
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'analyzed_words_phonemes.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAnalyzedWords(); 
+            analyzeWordsButton.addEventListener('click', analyzeWords);
+            downloadHtmlButton.addEventListener('click', downloadHtmlResults); 
+            messageBoxCloseButton.addEventListener('click', hideMessageBox);
         });
     </script>
 </body>

@@ -265,7 +265,7 @@ IMPORTANT PHONEME SEGMENTATION RULES:
 3.  **Digraphs & Trigraphs:** Preserve common consonant digraphs (e.g., "ph", "ch", "sh", "th", "ck", "kn", "gh", "wr") and trigraphs (e.g., "tch", "dge") as single phoneme units.
 4.  **Doubled Consonants:** Treat doubled consonants (e.g., "bb" in "rabbit", "ss" in "miss") as a single phoneme unit.
 5.  **Vowel Teams:** Treat vowel teams (e.g., "ea" in "read", "ai" in "rain", "ou" in "house", "oa" in "boat") as single phoneme units.
-6.  **R-Controlled Vowels:** Treat r-controlled vowels (e.g., "ar" in "car", "er" in "her", "ir" in "bird") as single phoneme units.
+6.  **R-Controlled Vowels:** Treat r-controlled vowels (e.g., "ar" in "car", "er" in "her", "ir" in "bird", "or" in "for", "ur" in "fur") as single phoneme units.
 7.  **Longer Spelling Patterns:** Treat longer common spelling patterns (e.g., "igh" in "light", "eigh" in "eight") as single phoneme units.
 8.  **Silent 'e' at Word End:** If a word ends with a silent 'e' that primarily affects the preceding vowel sound (e.g., "make", "hope", "like", "kite"), this phoneme segment should be {text: "e", isSilent: true}.
 
@@ -307,7 +307,7 @@ Here are the words: ${JSON.stringify(wordsToAnalyze)}`;
                 }
             };
 
-            const apiKey = ""; 
+            const apiKey = "AIzaSyAUi5NmCqebWIPIbECD_IKsEE45t9QlNas"; // API Key inserted here
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
@@ -386,7 +386,7 @@ Here are the words: ${JSON.stringify(wordsToAnalyze)}`;
                 const wordEntryDiv = document.createElement('div'); 
                 wordEntryDiv.className = 'analyzed-word-entry'; 
 
-                const originalWordActual = wordObj.word; // Store the original word for the check
+                const originalWordActual = wordObj.word; 
 
                 const phonemeSpans = (wordObj.phonemes || []).map((p, pIndex, phonemesArray) => {
                     let classes = '';
@@ -394,19 +394,12 @@ Here are the words: ${JSON.stringify(wordsToAnalyze)}`;
                     const isPhonemeTextE = p.text.toLowerCase() === 'e';
                     const originalWordEndsWithE = originalWordActual.toLowerCase().endsWith('e');
 
-                    // More assertive client-side check for silent 'e' at the end of a word
+                    
                     if (isPhonemeTextE && isLastPhoneme && originalWordEndsWithE) {
-                        // If it's the last phoneme, is 'e', and the original word ends with 'e',
-                        // we treat it as the special silent 'e', regardless of AI's isSilent flag for this specific 'e'.
-                        // The AI is still expected to mark it silent based on the prompt, but this is a fallback.
                         classes = 'silent silent-e-marker'; 
                     } else if (p.isSilent) {
                         classes = 'silent';
-                        // If a silent phoneme is multi-letter, it currently just appears grey.
-                        // To add an underline for silent multi-letter phonemes, you could add:
-                        // if (p.text.length > 1) { classes += ' multi-letter'; }
-                        // And then ensure CSS for .silent.multi-letter::after exists if needed.
-                    } else { // Not silent
+                    } else { 
                         if (p.text.length === 1) {
                             classes = 'single-letter';
                         } else if (p.text.length > 1) {

@@ -1,79 +1,588 @@
 
-import React, { useState } from "react";
-import { toast } from "@/components/ui/use-toast";
-import { AnalyzedWord } from "@/services/phonemeService";
-import { analyzeWordsClient } from "@/services/phonemeClientService";
-import PhonemeInput from "@/components/phoneme-analyzer/PhonemeInput";
-import PhonemeResult from "@/components/phoneme-analyzer/PhonemeResult";
-import HtmlExporter from "@/components/phoneme-analyzer/HtmlExporter";
-
-const PhonemeAnalyzer = () => {
-  const [inputWords, setInputWords] = useState("");
-  const [analyzedWords, setAnalyzedWords] = useState<AnalyzedWord[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  const handleAnalyze = async () => {
-    const wordsToAnalyze = inputWords
-      .split(',')
-      .map(word => word.trim())
-      .filter(word => word !== '');
-
-    if (wordsToAnalyze.length === 0) {
-      toast({
-        title: "Input Required",
-        description: "Please enter words to analyze.",
-        variant: "destructive",
-      });
-      return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Phoneme Analyzer</title>
+  <style>
+    /* Base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     }
-
-    setIsAnalyzing(true);
-    try {
-      // Directly use the client-side implementation
-      const results = await analyzeWordsClient(wordsToAnalyze);
+    
+    body {
+      background-color: #f3f4f6;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      color: #1f2937;
+    }
+    
+    .container {
+      max-width: 48rem;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 1.5rem;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      background-color: white;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+    
+    .hint {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+    }
+    
+    button {
+      display: block;
+      width: 100%;
+      padding: 0.625rem 1.25rem;
+      background-color: #1f2937;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: background-color 150ms;
+    }
+    
+    button:hover {
+      background-color: #374151;
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .toast {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 1rem;
+      background-color: white;
+      border-radius: 0.375rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      max-width: 24rem;
+      z-index: 50;
+      opacity: 0;
+      transform: translateY(-1rem);
+      transition: opacity 300ms, transform 300ms;
+    }
+    
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .toast-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .toast-description {
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+    
+    .toast-error {
+      border-left: 4px solid #ef4444;
+    }
+    
+    .toast-success {
+      border-left: 4px solid #10b981;
+    }
+    
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .results-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .download-button {
+      background-color: #16a34a;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
+    
+    .download-button:hover {
+      background-color: #15803d;
+    }
+    
+    .results-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .word-result {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 1rem;
+    }
+    
+    .word-result:last-child {
+      border-bottom: none;
+    }
+    
+    .phoneme-display {
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+      padding: 0.75rem;
+      border-radius: 0.375rem;
+    }
+    
+    .phoneme {
+      display: inline-block;
+      position: relative;
+      margin-right: 0.25rem;
+      margin-bottom: 0.5rem;
+      padding: 0 0.25rem 2.5rem 0.25rem;
+      min-width: 15px;
+      text-align: center;
+      font-size: 1.125rem;
+    }
+    
+    .phoneme-single:not(.silent) {
+      position: relative;
+    }
+    
+    .phoneme-single:not(.silent)::after {
+      content: "";
+      position: absolute;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      background-color: #4f46e5;
+      border-radius: 50%;
+    }
+    
+    .phoneme-multiple:not(.silent) {
+      position: relative;
+    }
+    
+    .phoneme-multiple:not(.silent)::after {
+      content: "";
+      position: absolute;
+      bottom: 1.25rem;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #4f46e5;
+    }
+    
+    .phoneme.silent {
+      color: #9ca3af;
+    }
+    
+    .silent-e-marker::after {
+      content: "#";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #4f46e5;
+      font-weight: 700;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Word Phoneme Analyzer</h1>
+    
+    <div class="input-section">
+      <label for="word-input">Enter words separated by commas:</label>
+      <textarea 
+        id="word-input"
+        placeholder="e.g., apple, rabbit, make, kite, light, boat, star"
+      ></textarea>
+      <div class="hint">
+        Press Ctrl+Enter or Cmd+Enter to quickly analyze
+      </div>
       
-      setAnalyzedWords(results);
-      toast({
-        title: "Analysis Complete",
-        description: `Successfully analyzed ${results.length} words.`,
-      });
-    } catch (error) {
-      console.error("Error analyzing words:", error);
-      toast({
-        title: "Analysis Failed",
-        description: error instanceof Error ? error.message : "Failed to analyze words",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md p-6">
-        <h1 className="text-3xl font-bold text-center mb-6">Word Phoneme Analyzer</h1>
-        
-        <PhonemeInput 
-          inputWords={inputWords}
-          setInputWords={setInputWords}
-          handleAnalyze={handleAnalyze}
-          isAnalyzing={isAnalyzing}
-        />
-
-        {analyzedWords.length > 0 && (
-          <div className="mt-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Analyzed Words:</h2>
-              <HtmlExporter analyzedWords={analyzedWords} />
-            </div>
-            
-            <PhonemeResult analyzedWords={analyzedWords} />
-          </div>
-        )}
+      <button id="analyze-button">Analyze Words</button>
+    </div>
+    
+    <div id="results-section" style="display:none;">
+      <div class="results-header">
+        <h2 class="results-title">Analyzed Words:</h2>
+        <button id="download-button" class="download-button">Download Results (HTML)</button>
+      </div>
+      
+      <div id="results-container" class="results-container">
+        <!-- Results will be inserted here -->
       </div>
     </div>
-  );
-};
+  </div>
+  
+  <div id="toast" class="toast">
+    <div id="toast-title" class="toast-title"></div>
+    <div id="toast-description" class="toast-description"></div>
+  </div>
 
-export default PhonemeAnalyzer;
+  <script>
+    // DOM Elements
+    const wordInput = document.getElementById('word-input');
+    const analyzeButton = document.getElementById('analyze-button');
+    const resultsSection = document.getElementById('results-section');
+    const resultsContainer = document.getElementById('results-container');
+    const downloadButton = document.getElementById('download-button');
+    const toast = document.getElementById('toast');
+    const toastTitle = document.getElementById('toast-title');
+    const toastDescription = document.getElementById('toast-description');
+    
+    // Global state
+    let analyzedWords = [];
+    let isAnalyzing = false;
+    
+    // Event Listeners
+    wordInput.addEventListener('keydown', function(e) {
+      // Allow analyzing when pressing Ctrl+Enter or Cmd+Enter
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (!isAnalyzing && wordInput.value.trim()) {
+          handleAnalyze();
+        } else if (!wordInput.value.trim()) {
+          showToast('Input Required', 'Please enter words to analyze.', 'error');
+        }
+      }
+    });
+    
+    analyzeButton.addEventListener('click', handleAnalyze);
+    downloadButton.addEventListener('click', downloadHtmlResults);
+    
+    // Functions
+    function handleAnalyze() {
+      const inputValue = wordInput.value;
+      const wordsToAnalyze = inputValue
+        .split(',')
+        .map(word => word.trim())
+        .filter(word => word !== '');
+      
+      if (wordsToAnalyze.length === 0) {
+        showToast('Input Required', 'Please enter words to analyze.', 'error');
+        return;
+      }
+      
+      isAnalyzing = true;
+      analyzeButton.disabled = true;
+      analyzeButton.textContent = 'Analyzing...';
+      
+      try {
+        const results = analyzeWordsClient(wordsToAnalyze);
+        analyzedWords = results;
+        
+        renderResults();
+        showToast('Analysis Complete', `Successfully analyzed ${results.length} words.`, 'success');
+        
+        // Show results section
+        resultsSection.style.display = 'block';
+      } catch (error) {
+        console.error('Error analyzing words:', error);
+        showToast('Analysis Failed', error.message || 'Failed to analyze words', 'error');
+      } finally {
+        isAnalyzing = false;
+        analyzeButton.disabled = false;
+        analyzeButton.textContent = 'Analyze Words';
+      }
+    }
+    
+    function analyzeWordsClient(words) {
+      console.log('Using client-side fallback for phoneme analysis');
+      
+      return words.map(word => {
+        // Convert the word to lowercase for processing
+        const lowerWord = word.toLowerCase();
+        const phonemes = [];
+        
+        // Process the word character by character
+        let i = 0;
+        while (i < lowerWord.length) {
+          // Check for common digraphs and trigraphs
+          if (i < lowerWord.length - 2) {
+            const trigraph = lowerWord.substring(i, i + 3);
+            if (["tch", "dge", "igh"].includes(trigraph)) {
+              phonemes.push({ text: trigraph, isSilent: false });
+              i += 3;
+              continue;
+            }
+          }
+          
+          // Check for common digraphs
+          if (i < lowerWord.length - 1) {
+            const digraph = lowerWord.substring(i, i + 2);
+            if (["ph", "ch", "sh", "th", "ck", "kn", "gh", "wr", "wh", "qu", "ai", "ay", "ea", "ee", "oa", "oo", "ou", "ow", "ar", "er", "ir", "or", "ur"].includes(digraph)) {
+              // Special case for 'kn' at the beginning of a word - 'k' is silent
+              if (digraph === "kn" && i === 0) {
+                phonemes.push({ text: "k", isSilent: true });
+                phonemes.push({ text: "n", isSilent: false });
+              } 
+              // Special case for 'wr' at the beginning of a word - 'w' is silent
+              else if (digraph === "wr" && i === 0) {
+                phonemes.push({ text: "w", isSilent: true });
+                phonemes.push({ text: "r", isSilent: false });
+              }
+              // General case
+              else {
+                phonemes.push({ text: digraph, isSilent: false });
+              }
+              i += 2;
+              continue;
+            }
+          }
+          
+          // Check for doubled consonants
+          if (i < lowerWord.length - 1 && lowerWord[i] === lowerWord[i + 1] && 
+              "bcdfghjklmnpqrstvwxz".includes(lowerWord[i])) {
+            phonemes.push({ text: lowerWord.substring(i, i + 2), isSilent: false });
+            i += 2;
+            continue;
+          }
+          
+          // Check for silent 'e' at end of word
+          if (i === lowerWord.length - 1 && lowerWord[i] === 'e' && 
+              lowerWord.length > 2 && "aeiou".includes(lowerWord[i - 2]) && 
+              "bcdfghjklmnpqrstvwxz".includes(lowerWord[i - 1])) {
+            phonemes.push({ text: "e", isSilent: true });
+            i++;
+            continue;
+          }
+          
+          // Single character case
+          phonemes.push({ text: lowerWord[i], isSilent: false });
+          i++;
+        }
+        
+        return { word, phonemes };
+      });
+    }
+    
+    function renderResults() {
+      resultsContainer.innerHTML = '';
+      
+      analyzedWords.forEach(wordObj => {
+        const wordElement = document.createElement('div');
+        wordElement.className = 'word-result';
+        
+        const phonemeDisplay = document.createElement('div');
+        phonemeDisplay.className = 'phoneme-display';
+        
+        wordObj.phonemes.forEach((phoneme, pIndex) => {
+          const isLastPhoneme = pIndex === wordObj.phonemes.length - 1;
+          const isPhonemeTextE = phoneme.text.toLowerCase() === 'e';
+          const originalWordEndsWithE = wordObj.word.toLowerCase().endsWith('e');
+          
+          const phonemeElement = document.createElement('span');
+          phonemeElement.className = 'phoneme';
+          phonemeElement.textContent = phoneme.text;
+          
+          if (phoneme.text.length === 1 && !phoneme.isSilent) {
+            phonemeElement.classList.add('phoneme-single');
+          } else if (phoneme.text.length > 1 && !phoneme.isSilent) {
+            phonemeElement.classList.add('phoneme-multiple');
+          }
+          
+          if (isPhonemeTextE && isLastPhoneme && originalWordEndsWithE) {
+            phonemeElement.classList.add('silent');
+            phonemeElement.classList.add('silent-e-marker');
+          } else if (phoneme.isSilent) {
+            phonemeElement.classList.add('silent');
+          }
+          
+          phonemeDisplay.appendChild(phonemeElement);
+        });
+        
+        wordElement.appendChild(phonemeDisplay);
+        resultsContainer.appendChild(wordElement);
+      });
+    }
+    
+    function showToast(title, description, type = 'default') {
+      toastTitle.textContent = title;
+      toastDescription.textContent = description;
+      
+      toast.className = 'toast';
+      
+      if (type === 'error') {
+        toast.classList.add('toast-error');
+      } else if (type === 'success') {
+        toast.classList.add('toast-success');
+      }
+      
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+    
+    function downloadHtmlResults() {
+      if (analyzedWords.length === 0) {
+        showToast('No Data', 'There are no analyzed words to download.', 'error');
+        return;
+      }
+      
+      const wordListItemsHtml = analyzedWords.map(wordObj => {
+        const originalWordActual = wordObj.word;
+        const phonemeSpans = (wordObj.phonemes || []).map((p, pIndex, phonemesArray) => {
+          let classes = '';
+          const isLastPhoneme = pIndex === phonemesArray.length - 1;
+          const isPhonemeTextE = p.text.toLowerCase() === 'e';
+          const originalWordEndsWithE = originalWordActual.toLowerCase().endsWith('e');
+          
+          if (isPhonemeTextE && isLastPhoneme && originalWordEndsWithE) {
+            classes = 'silent silent-e-marker';
+          } else if (p.isSilent) {
+            classes = 'silent';
+          } else { 
+            if (p.text.length === 1) {
+              classes = 'single-letter';
+            } else if (p.text.length > 1) {
+              classes = 'multi-letter';
+            }
+          }
+          return `<span class="${classes.trim()}">${p.text}</span>`;
+        }).join('');
+        
+        return `
+          <div class="analyzed-word-entry">
+            <div class="phoneme-display-direct">
+              ${phonemeSpans || '<em class="text-gray-500 text-sm">No phonemes.</em>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Analyzed Words Report</title>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+          <style>
+            body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; padding: 20px; margin: 0; }
+            .download-container { background-color: white; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); max-width: 800px; margin: 20px auto; }
+            h1 { font-size: 1.875rem; margin-bottom: 1.5rem; font-weight: 600; color: #1f2937; text-align: center; }
+            
+            .analyzed-word-entry { padding: 0.5rem 0; margin-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; }
+            .analyzed-word-entry:last-child { border-bottom: none; }
+            .phoneme-display-direct { padding: 0.5rem; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; text-align: left; }
+            
+            .phoneme-display-direct span {
+              display: inline-block;
+              margin-right: 4px;
+              margin-bottom: 8px;
+              position: relative;
+              padding: 0 2px 10px 2px;
+              min-width: 15px;
+              text-align: center;
+              font-size: 1.125rem; 
+            }
+            .phoneme-display-direct span.silent {
+              color: #9ca3af;
+            }
+            .phoneme-display-direct span.single-letter:not(.silent-e-marker)::after {
+              content: '';
+              position: absolute;
+              bottom: 4px; 
+              left: 50%;
+              transform: translateX(-50%);
+              width: 6px;
+              height: 6px;
+              background-color: #4f46e5; 
+              border-radius: 50%;
+            }
+            .phoneme-display-direct span.multi-letter::after {
+              content: '';
+              position: absolute;
+              bottom: 6px; 
+              left: 0; 
+              width: 100%;
+              height: 2px; 
+              background-color: #4f46e5; 
+            }
+            .phoneme-display-direct span.silent-e-marker::after {
+              content: '#';
+              position: absolute;
+              bottom: 0px;
+              left: 50%;
+              transform: translateX(-50%);
+              color: #4f46e5;
+              font-size: 0.9em;
+              font-weight: bold;
+              line-height: 1;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="download-container">
+            <h1>Analyzed Words Report</h1>
+            <div> 
+              ${wordListItemsHtml}
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'analyzed_words_phonemes.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
